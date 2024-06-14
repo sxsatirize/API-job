@@ -8,8 +8,12 @@ import matplotlib.pyplot as plt
 import io
 import base64
 import numpy as np
+import logging
 
 app = Flask(__name__)
+
+# Установим уровень логирования на DEBUG
+logging.basicConfig(level=logging.DEBUG)
 
 def get_vacancies(text, area, pages=1, per_page=100):
     api_url = 'https://api.hh.ru/vacancies'
@@ -35,43 +39,61 @@ def get_vacancies(text, area, pages=1, per_page=100):
 def index():
     return render_template('index.html')
 
+@app.route('/regions')
+def regions():
+    try:
+        df_regions = pd.read_csv('../regions.hh/regions.csv')
+        regions = df_regions.to_dict(orient="records")
+        return render_template('regions.html', regions=regions)
+    except Exception as e:
+        logging.error(f"Error loading regions: {e}")
+        return f"Error loading regions: {e}"
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    search_text = request.form['text']
-    region = request.form['region']
+    try:
+        search_text = request.form['text']
+        region = request.form['region']
+        logging.debug(f"Received search_text: {search_text}, region: {region}")
 
-    vacancies = get_vacancies(search_text, region)
-    df = pd.DataFrame(vacancies)
+        status = "Идёт обработка данных..."
+        vacancies = get_vacancies(search_text, region)
+        logging.debug(f"Number of vacancies fetched: {len(vacancies)}")
 
-    df['salary_from'] = df['salary'].apply(lambda x: x['from'] if x and 'from' in x else None)
-    df['salary_to'] = df['salary'].apply(lambda x: x['to'] if x and 'to' in x else None)
-    df['salary_currency'] = df['salary'].apply(lambda x: x['currency'] if x and 'currency' in x else None)
-    df['employer_name'] = df['employer'].apply(lambda x: x['name'] if x and 'name' in x else None)
-    df['area_name'] = df['area'].apply(lambda x: x['name'] if x and 'name' in x else None)
+        df = pd.DataFrame(vacancies)
 
-    df = df[['name', 'area_name', 'salary_from', 'salary_to', 'salary_currency', 'employer_name', 'published_at']]
-    df = df.dropna(subset=['salary_from', 'salary_to'])
-    df['salary_from'] = pd.to_numeric(df['salary_from'])
-    df['salary_to'] = pd.to_numeric(df['salary_to'])
+        df['salary_from'] = df['salary'].apply(lambda x: x['from'] if x and 'from' in x else None)
+        df['salary_to'] = df['salary'].apply(lambda x: x['to'] if x and 'to' in x else None)
+        df['salary_currency'] = df['salary'].apply(lambda x: x['currency'] if x and 'currency' in x else None)
+        df['employer_name'] = df['employer'].apply(lambda x: x['name'] if x and 'name' in x else None)
+        df['area_name'] = df['area'].apply(lambda x: x['name'] if x and 'name' in x else None)
 
-    plt.figure(figsize=(12, 6))
-    bins = np.linspace(df['salary_from'].min(), df['salary_to'].max(), 20)
-    plt.hist(df['salary_from'], bins=bins, alpha=0.5, label='Зарплата от', color='blue', edgecolor='black')
-    plt.hist(df['salary_to'], bins=bins, alpha=0.5, label='Зарплата до', color='orange', edgecolor='black')
-    plt.xlabel('Зарплата (руб)')
-    plt.ylabel('Количество вакансий')
-    plt.xticks(bins, rotation=45)
-    plt.yticks(np.arange(0, df.shape[0] + 1, 1))
-    plt.legend(loc='upper right')
-    plt.title(f'Распределение зарплат для {search_text} в регионе {region}')
-    plt.grid(True)
+        df = df[['name', 'area_name', 'salary_from', 'salary_to', 'salary_currency', 'employer_name', 'published_at']]
+        df = df.dropna(subset=['salary_from', 'salary_to'])
+        df['salary_from'] = pd.to_numeric(df['salary_from'])
+        df['salary_to'] = pd.to_numeric(df['salary_to'])
 
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    plot_url = base64.b64encode(img.getvalue()).decode()
+        plt.figure(figsize=(12, 6))
+        bins = np.linspace(df['salary_from'].min(), df['salary_to'].max(), 20)
+        plt.hist(df['salary_from'], bins=bins, alpha=0.5, label='Зарплата от', color='blue', edgecolor='black')
+        plt.hist(df['salary_to'], bins=bins, alpha=0.5, label='Зарплата до', color='orange', edgecolor='black')
+        plt.xlabel('Зарплата (руб)')
+        plt.ylabel('Количество вакансий')
+        plt.xticks(bins, rotation=45)
+        plt.yticks(np.arange(0, df.shape[0] + 1, 1))
+        plt.legend(loc='upper right')
+        plt.title(f'Распределение зарплат для {search_text} в регионе {region}')
+        plt.grid(True)
 
-    return render_template('index.html', plot_url=plot_url)
+        img = io.BytesIO()
+        plt.savefig(img, format='png')
+        img.seek(0)
+        plot_url = base64.b64encode(img.getvalue()).decode()
+
+        return render_template('index.html', results=True, plot_url=plot_url, status=status)
+    except Exception as e:
+        logging.error(f"Error during analysis: {e}")
+        return f"Error during analysis: {e}"
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run(debug=True)

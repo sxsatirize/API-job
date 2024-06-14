@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Список Регионов</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function filterRegions() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("regionSearch");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("regionsTable");
+            tr = table.getElementsByTagName("tr");
+            for (i = 1; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[1];
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Список Регионов</h1>
+    <input type="text" id="regionSearch" onkeyup="filterRegions()" placeholder="Поиск региона...">
+    <table id="regionsTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for region in regions %}
+            <tr>
+                <td>{{ region.id }}</td>
+                <td>{{ region.name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -2,22 +2,33 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анализ вакансий</title>
+    <title>Анализ Зарплат по Вакансиям</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>Анализ вакансий</h1>
-    <form method="POST" action="/analyze">
-        <label for="text">Название работы:</label>
+    <form action="/analyze" method="post">
+        <label for="text">Поисковый запрос:</label>
         <input type="text" id="text" name="text" required>
-        <label for="region">Регион:</label>
+        <label for="region">Регион: <a href="/regions" title="Список регионов доступен здесь.">?</a></label>
         <input type="text" id="region" name="region" required>
         <button type="submit">Анализировать</button>
     </form>
-    {% if plot_url %}
-    <h2>Распределение зарплат</h2>
-    <img src="data:image/png;base64,{{ plot_url }}" alt="Распределение зарплат">
-    {% endif %}
+    <div id="results">
+        {% if results %}
+            <h2>Результаты Анализа:</h2>
+            <img src="data:image/png;base64,{{ plot_url }}" alt="Plot">
+        {% endif %}
+    </div>
+    <div id="status">
+        {% if status %}
+            <p>{{ status }}</p>
+        {% endif %}
+    </div>
+    <div id="error">
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+    </div>
 </body>
 </html>
