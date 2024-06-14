@@ -12,7 +12,6 @@ import logging
 
 app = Flask(__name__)
 
-# Установим уровень логирования на DEBUG
 logging.basicConfig(level=logging.DEBUG)
 
 def get_vacancies(text, area, pages=1, per_page=100):
