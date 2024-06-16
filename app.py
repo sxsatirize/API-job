@@ -42,6 +42,7 @@ def index():
 def regions():
     try:
         df_regions = pd.read_csv('../regions.hh/regions.csv')
+        logging.debug(f"Loaded regions data: {df_regions.head()}")
         regions = df_regions.to_dict(orient="records")
         return render_template('regions.html', regions=regions)
     except Exception as e:
@@ -74,15 +75,18 @@ def analyze():
 
         plt.figure(figsize=(12, 6))
         bins = np.linspace(df['salary_from'].min(), df['salary_to'].max(), 20)
-        plt.hist(df['salary_from'], bins=bins, alpha=0.5, label='Зарплата от', color='blue', edgecolor='black')
-        plt.hist(df['salary_to'], bins=bins, alpha=0.5, label='Зарплата до', color='orange', edgecolor='black')
-        plt.xlabel('Зарплата (руб)')
-        plt.ylabel('Количество вакансий')
-        plt.xticks(bins, rotation=45)
-        plt.yticks(np.arange(0, df.shape[0] + 1, 1))
-        plt.legend(loc='upper right')
-        plt.title(f'Распределение зарплат для {search_text} в регионе {region}')
-        plt.grid(True)
+        
+        plt.hist(df['salary_from'], bins=bins, alpha=0.5, label='Зарплата от', color='#1f77b4', edgecolor='black')
+        plt.hist(df['salary_to'], bins=bins, alpha=0.5, label='Зарплата до', color='#ff7f0e', edgecolor='black')
+        
+        plt.xlabel('Зарплата (руб)', fontsize=14)
+        plt.ylabel('Количество вакансий', fontsize=14)
+        plt.xticks(bins, rotation=45, fontsize=12)
+        plt.yticks(np.arange(0, df.shape[0] + 1, 1), fontsize=12)
+        plt.legend(loc='upper right', fontsize=12)
+        plt.title(f'Распределение зарплат для {search_text} в регионе {region}', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.7)
+        plt.tight_layout()
 
         img = io.BytesIO()
         plt.savefig(img, format='png')

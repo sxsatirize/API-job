@@ -26,23 +26,26 @@
     </script>
 </head>
 <body>
-    <h1>Список Регионов</h1>
-    <input type="text" id="regionSearch" onkeyup="filterRegions()" placeholder="Поиск региона...">
-    <table id="regionsTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Название</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for region in regions %}
-            <tr>
-                <td>{{ region.id }}</td>
-                <td>{{ region.name }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="container">
+        <button class="back-button" onclick="window.location.href='/'">Вернуться к анализу</button>
+        <h1>Список Регионов</h1>
+        <input type="text" id="regionSearch" onkeyup="filterRegions()" placeholder="Поиск региона...">
+        <table id="regionsTable" class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for region in regions %}
+                <tr>
+                    <td>{{ region.id }}</td>
+                    <td>{{ region.name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>
